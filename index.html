@@ -89,36 +89,8 @@ padding:20px;line-height:1.8;
 
 <h2 id="products">Our Products</h2>
 
-<div class="products">
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500" alt="Saree">
-<h3>Beautiful Saree</h3>
-<p class="price">Contact for Price</p>
-<button onclick="order('Beautiful Saree')">Order on WhatsApp</button>
-</div>
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1583391733956-6c78276477e3?w=500" alt="Traditional Dress">
-<h3>Traditional Collection</h3>
-<p class="price">Contact for Price</p>
-<button onclick="order('Traditional Collection')">Order on WhatsApp</button>
-</div>
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=500" alt="Fashion">
-<h3>Latest Fashion</h3>
-<p class="price">Contact for Price</p>
-<button onclick="order('Latest Fashion')">Order on WhatsApp</button>
-</div>
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1590736969955-71cc94901144?w=500" alt="Clothing">
-<h3>New Collection</h3>
-<p class="price">Contact for Price</p>
-<button onclick="order('New Collection')">Order on WhatsApp</button>
-</div>
-
+<div class="products" id="products-list">
+  <p>Loading Products...</p>
 </div>
 
 <section class="about">
@@ -151,11 +123,61 @@ Find Our Shop
 <p>© 2026 Krishna Textiles. All Rights Reserved.</p>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-function order(product){
-let message="Hello, I want to buy "+product+" from Krishna Textiles!";
-window.open("https://wa.me/919340151648?text="+encodeURIComponent(message),"_blank");
+const SUPABASE_URL = https://bdjltkacfkhquhklcegy.supabase.co/rest/v1/
+const SUPABASE_KEY = sb_publishable_5Kma0eLvbP0NIElLviTUdw_RsV1owkm
+
+const db = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+async function loadProducts() {
+  const box = document.getElementById("products-list");
+
+  const { data, error } = await db
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    box.innerHTML = "<p>Products loading error!</p>";
+    console.error(error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    box.innerHTML = "<p>No Products Available</p>";
+    return;
+  }
+
+  box.innerHTML = data.map(p => `
+    <div class="card">
+      <img src="${p.image_url}" alt="${p.Name}">
+      <h3>${p.Name}</h3>
+      <p>${p.Discription || ""}</p>
+      <p class="price">₹${p.Price}</p>
+      <button onclick="order('${String(p.Name).replace(/'/g, "\\'")}')">
+        Order on WhatsApp
+      </button>
+    </div>
+  `).join("");
 }
+
+function order(product) {
+  const message = "Hello, I want to buy " + product +
+    " from Krishna Textiles!";
+
+  window.open(
+    "https://wa.me/919340151648?text=" +
+    encodeURIComponent(message),
+    "_blank"
+  );
+}
+
+loadProducts();
 </script>
 
 </body>
